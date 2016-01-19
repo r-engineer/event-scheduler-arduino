@@ -6,3 +6,7 @@ This code uses:
 	Based on MsTimer2 originally written by Javier Valencia.
 	Wim Leers added code which makes interval resolution configurable
 	https://github.com/wimleers/flexitimer2
+	
+Examples use:
+	https://github.com/r-engineer/event-button
+	https://github.com/r-engineer/event-LED
