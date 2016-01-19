@@ -1,7 +1,9 @@
 #ifndef SCHEDULER_H    
 #define SCHEDULER_H  
 
-#include "stdint.h"
+#define USE_UTILIZE_FUNC 1
+
+#include <stdint.h>
 
 #define MAX_NUMBER_EVENTS 10
 
@@ -25,7 +27,7 @@ protected:
 	volatile bool enable_flag;
 	volatile uint16_t current_count;
 	uint16_t count_start;
-	void set_counter(uint16_t cnt_start); //automatically resets current_count but doesn't modify enable
+	void set_counter(uint16_t cnt_start);
 private:
 	
 };
@@ -41,12 +43,21 @@ public:
 											//
 	void execute_events();
 	void timer_start();//start
+	void init(void(*func)(uint8_t));
 	void init();
 	friend void update_counts();
 private:
 	polled_event *rootptr;
+	void (*gpioFunc)(uint8_t);
 };
 
+/******************************************************************************
+Need to create an object so that the update_counts() function has something
+to work with.  I would like to pass an object reference to update_counts() function 
+to avoid making it a friend function and to avoid creating the scheduler_o object
+in this file but the callback function passed to FlexiTimer2 is defined as a 
+void (*func)() which has to match the definition of update_counts()
+******************************************************************************/
 extern scheduler scheduler_o;
 
 #endif

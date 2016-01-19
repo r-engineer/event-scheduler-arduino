@@ -1,6 +1,6 @@
 #include "scheduler.h"
 #include "FlexiTimer2.h"
-#include "Arduino.h"
+#include <Arduino.h>
 
 scheduler scheduler_o;
 
@@ -10,6 +10,7 @@ polled_event::polled_event()
 	current_count = 0;
 	enable_flag = false;
 	next = 0;
+	
 }
 
 polled_event::polled_event(uint16_t cnt_start)
@@ -31,7 +32,6 @@ void polled_event::reset_counter()
 	
 }
 
-//automatically resets current_count but doesn't modify enable
 void polled_event::set_counter(uint16_t cnt_start)
 {
 	//don't let the timer interrupt modify the counter while updating 
@@ -77,6 +77,7 @@ uint16_t polled_event::get_current_count()
 scheduler::scheduler()
 {
 	rootptr = 0;
+	gpioFunc = NULL;
 }
 
 
@@ -113,7 +114,14 @@ void scheduler::init()
 	
 	FlexiTimer2::set(1, 1.0/1000, update_counts); // call every 500 1ms "ticks"
 	// FlexiTimer2::set(500, flash); // MsTimer2 style is also supported
+}
+
+void scheduler::init(void(*func)(uint8_t))
+{
+	FlexiTimer2::set(1, 1.0/1000, update_counts); // call every 500 1ms "ticks"
+	// FlexiTimer2::set(500, flash); // MsTimer2 style is also supported
 	
+	gpioFunc = func;
 }
 
 
@@ -132,9 +140,19 @@ void scheduler::execute_events()
 			interrupts();
 			if(current_count == 0)
 			{
-				digitalWrite(13, HIGH);
+#ifdef USE_UTILIZE_FUNC
+				if(gpioFunc)
+				{
+					(*gpioFunc)(HIGH);
+				}
+#endif
 				tempptr->execute();
-				digitalWrite(13, LOW);
+#ifdef USE_UTILIZE_FUNC
+				if(gpioFunc)
+				{
+					(*gpioFunc)(LOW);
+				}
+#endif
 			}
 		}
 		tempptr = tempptr->next;
